@@ -3,9 +3,10 @@ import requests
 from .models import *
 from .forms import *
 from django.contrib import messages
+from weather.settings import *
 
 def index(request):
-    api_key = '33e3129c5e20cc50a11b6839ec2100e2'
+    api_key = weather_api_key
     
     if request.method == 'POST':
         form = CityForm(request.POST)
@@ -24,9 +25,6 @@ def index(request):
         response = requests.get(url)
         city_weather = response.json()
 
-        # Debugging: Print the raw response
-        print("///////////////", city_weather)
-
         if response.status_code == 200 and 'main' in city_weather:
             weather = {
                 'city': i.name,
@@ -43,9 +41,9 @@ def index(request):
     print("wwwwwwwwwwwww", weather_list)
     context = {
         "weather_list":weather_list,
-        "form":CityForm
+        "form":CityForm,
     }
-    return render(request, 'weather/index.html', locals())
+    return render(request, 'weather/index.html', context)
 
 
 
