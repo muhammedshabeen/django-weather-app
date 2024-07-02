@@ -1,11 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>What's the weather like?</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.css" />
+    {% load convert_filters %}
+<style>
+    .media-right{
+        margin-left: -1rem !important;
+        margin-top: -19px !important;
+        margin-right: -17px;
+
+    }
+</style>
 </head>
 <body>
     <section class="hero is-primary">
@@ -17,15 +27,25 @@
             </div>
         </div>
     </section>
+
+
     <section class="section">
         <div class="container">
             <div class="columns">
                 <div class="column is-offset-4 is-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="notification {% if message.tags == 'success' %}is-success{% elif message.tags == 'error' %}is-danger{% elif message.tags == 'warning' %}is-warning{% endif %}" >
+                                <button class="delete"></button>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
                     <form method="POST">
                         {% csrf_token %}
                         <div class="field has-addons">
                             <div class="control is-expanded">
-                                <input class="input" type="text" placeholder="City Name">
+                                {{form.name}}
                             </div>
                             <div class="control">
                                 <button class="button is-info">
@@ -38,34 +58,69 @@
             </div>
         </div>
     </section>
+
+
+
     <section class="section">
         <div class="container">
-            <div class="columns">
-                <div class="column is-offset-4 is-4">
-                    <div class="box">
-                        <article class="media">
-                            <div class="media-left">
-                                <figure class="image is-50x50">
-                                    <img src="http://openweathermap.org/img/w/{{ weather.icon }}.png" alt="Image">
-                                </figure>
-                            </div>
-                            <div class="media-content">
-                                <div class="content">
-                                    <p>
-                                        <span class="title">{{ weather.city }}</span>
-                                        <br>
-                                        <span class="subtitle">{{ weather.temperature }}° F</span>
-                                        <br> {{ weather.description }}
-                                    </p>
+            <div class="columns is-multiline">
+                {% if weather_list %}
+                {% for weather in weather_list %}
+                    <div class="column is-one-quarter">
+                        <div class="box">
+                            <article class="media">
+                                <div class="media-left">
+                                    <figure class="image is-50x50">
+                                        <img src="http://openweathermap.org/img/w/{{ weather.icon }}.png" alt="Weather Icon">
+                                    </figure>
                                 </div>
-                            </div>
-                        </article>
+                                <div class="media-content">
+                                    <div class="content">
+                                        <p>
+                                            <span class="title">{{ weather.city }}</span>
+                                            <br>
+                                            <span class="subtitle">{{ weather.temperature|fahrenheit_to_celsius }}° C</span>
+                                            <br>{{ weather.description }}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="media-right">
+                                    <button class="delete" onclick="deleteWeather('{{ weather.id }}','{{ weather.city }}')"></button>
+                                </div>
+                            </article>
+                        </div>
                     </div>
-                </div>
+                {% endfor %}
+                {% else %}
+                    <b>---------------------------------------------------------------------- Add a city to check the weather!! ------------------------------------------</b>
+                {% endif %}
             </div>
         </div>
     </section>
+
+        
     <footer class="footer">
     </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const deleteButtons = document.querySelectorAll('.notification .delete');
+            
+            deleteButtons.forEach(deleteButton => {
+                deleteButton.addEventListener('click', () => {
+                    deleteButton.parentNode.remove();
+                });
+            });
+        });
+    </script>
+    <script>
+        function deleteWeather(id,city_name) {
+            if (confirm(`Are you sure you want to delete weather data for ${city_name}?`)) {
+                // Perform AJAX request to delete endpoint or navigate to delete URL
+                // Example using window.location.href to navigate to a delete endpoint
+                const deleteUrl = `delete/${id}/`;  // Replace with your actual delete endpoint
+                window.location.href = deleteUrl;
+            }
+        }
+    </script>
 </body>
 </html>
